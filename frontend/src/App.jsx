@@ -519,15 +519,6 @@ export default function App() {
               <Activity size={14} color={executing ? '#22c55e' : 'inherit'} /> Live Execution Logs
             </button>
             <button
-              className={`tab-btn $`}
-              onClick={() => {
-                setActiveTab('screenshots');
-                loadScreenshots();
-              }}
-            >
-              <Camera size={14} /> Proof Screenshots {screenshotsList.length > 0 ? `(${screenshotsList.length})` : ''}
-            </button>
-            <button
               className={`tab-btn ${activeTab === 'mapping' ? 'tab-btn--active' : ''}`}
               onClick={() => setActiveTab('mapping')}
             >
@@ -623,61 +614,6 @@ export default function App() {
             </div>
           )}
 
-                    {/* Proof Screenshots Gallery Tab */}
-          {activeTab === 'screenshots' && (
-            <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Proof Screenshots Gallery</h3>
-                  <p style={{ fontSize: '12.5px', color: '#64748b', margin: '2px 0 0' }}>
-                    Click any screenshot to enlarge in full resolution
-                  </p>
-                </div>
-                {screenshotsList.length > 0 && (
-                  <a href={`${API_BASE}/api/download/screenshots/zip`} className="report-link" style={{ margin: 0, padding: '6px 12px', fontSize: '12px' }} download>
-                    <Download size={13} /> Download All (.zip)
-                  </a>
-                )}
-              </div>
-
-              {screenshotsList.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon"><Camera size={32} /></div>
-                  <p>No screenshots captured yet</p>
-                  <span>Run a test flow to automatically capture login & milestone proof snapshots</span>
-                </div>
-              ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
-                  {screenshotsList.map((ss, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        background: '#fff',
-                        borderRadius: '10px',
-                        border: '1px solid var(--border)',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        transition: 'transform 0.15s, box-shadow 0.15s'
-                      }}
-                      onClick={() => setSelectedModalImg(`${API_BASE}${ss.url}`)}
-                    >
-                      <img
-                        src={`${API_BASE}${ss.url}`}
-                        alt={ss.filename}
-                        style={{ width: '100%', height: '130px', objectFit: 'cover', background: '#f1f5f9' }}
-                      />
-                      <div style={{ padding: '8px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '11.5px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>
-                          {ss.filename}
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>{ss.size_kb} KB</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Live Execution Tab */}
           {activeTab === 'live' && (
