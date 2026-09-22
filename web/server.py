@@ -64,7 +64,7 @@ class ExecuteRequest(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     browser: Optional[str] = "chromium"
-    headless: Optional[bool] = True
+    headless: Optional[bool] = False
     multi_role_mode: Optional[bool] = False
     role_credentials: Optional[Dict[str, Any]] = None
 
@@ -96,7 +96,7 @@ async def get_config():
             "username": os.getenv("ORACLE_USERNAME", "ramya.dm"),
             "hasStoredPassword": bool(os.getenv("ORACLE_PASSWORD", "").strip()),
             "browser": os.getenv("BROWSER", "chromium"),
-            "headless": os.getenv("HEADLESS", "true").lower() == "true"
+            "headless": False
         }
     }
 
@@ -159,11 +159,12 @@ async def execute_all_scripts(req: ExecuteRequest = Body(default=ExecuteRequest(
     target_user = (req.username     or os.getenv("ORACLE_USERNAME", "")).strip()
     target_pass = (req.password     or os.getenv("ORACLE_PASSWORD", "")).strip()
     browser_type = req.browser or "chromium"
-    headless     = req.headless if req.headless is not None else True
+    headless     = req.headless if req.headless is not None else False
 
-    logger.info(f"[EXECUTE] Starting REAL Playwright execution for {len(LATEST_BATCH_SCRIPTS)} scripts")
+    logger.info(f"[EXECUTE] Starting LIVE VISIBLE Playwright execution for {len(LATEST_BATCH_SCRIPTS)} scripts")
     logger.info(f"[EXECUTE] Target URL : {target_url}")
     logger.info(f"[EXECUTE] Username   : {target_user}")
+    logger.info(f"[EXECUTE] Headless   : {headless} (Visible Browser)")
 
     executor = PlaywrightFusionExecutor()
     env_config = {
@@ -234,8 +235,10 @@ async def execute_single_script(script_id: str, req: ExecuteRequest = Body(defau
     target_url  = (req.instance_url or os.getenv("ORACLE_BASE_URL", "")).strip()
     target_user = (req.username     or os.getenv("ORACLE_USERNAME", "")).strip()
     target_pass = (req.password     or os.getenv("ORACLE_PASSWORD", "")).strip()
+    browser_type = req.browser or "chromium"
+    headless     = req.headless if req.headless is not None else False
 
-    logger.info(f"[EXECUTE] Single script: {script_id}")
+    logger.info(f"[EXECUTE] Single script (Visible Browser): {script_id}")
 
     executor = PlaywrightFusionExecutor()
     env_config = {
@@ -245,7 +248,7 @@ async def execute_single_script(script_id: str, req: ExecuteRequest = Body(defau
     }
 
     try:
-        executed = await executor.execute_batch([script], env_config=env_config)
+        executed = await executor.execute_batch([script], env_config=env_config, browser_type=browser_type, headless=headless)
         CURRENT_SCRIPTS[script_id] = executed[0]
         script = executed[0]
     except Exception as e:
