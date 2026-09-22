@@ -1,0 +1,21 @@
+# Oracle Fusion Semantic Object Repository
+Bell Notifications:
+  strategies:
+    - type: role
+      value: "button[name*='Notifications' i]"
+    - type: css
+      value: "svg[data-icon='bell'], .svg-bell, #pt1\\:_UISnm"
+
+Approve:
+  strategies:
+    - type: role
+      value: "button[name*='Approve' i]"
+    - type: text
+      value: "Approve"
+
+Offers:
+  strategies:
+    - type: text
+      value: "Job Offers"
+    - type: text
+      value: "Offers"

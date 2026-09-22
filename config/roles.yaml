@@ -1,0 +1,20 @@
+roles:
+  1st Approver:
+    username_env: "ORACLE_APPROVER1_USER"
+    password_env: "ORACLE_APPROVER1_PASS"
+    storage_state: "auth_states/approver1_state.json"
+
+  2nd Approver:
+    username_env: "ORACLE_APPROVER2_USER"
+    password_env: "ORACLE_APPROVER2_PASS"
+    storage_state: "auth_states/approver2_state.json"
+
+  Recruiter:
+    username_env: "ORACLE_RECRUITER_USER"
+    password_env: "ORACLE_RECRUITER_PASS"
+    storage_state: "auth_states/recruiter_state.json"
+
+  Hiring Manager:
+    username_env: "ORACLE_HIRING_MGR_USER"
+    password_env: "ORACLE_HIRING_MGR_PASS"
+    storage_state: "auth_states/hiring_mgr_state.json"

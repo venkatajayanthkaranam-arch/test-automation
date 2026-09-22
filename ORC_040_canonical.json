@@ -1,0 +1,447 @@
+{
+  "script_id": "ORC_040",
+  "title": "Multi-Level Job Offer Approval Workflow",
+  "description": "This test case verifies that the job offer requiring sequential approvals (by 1st Approver and 2nd Approver) progresses correctly through each approval stage",
+  "system_environment": "Recruiter",
+  "tester_name": null,
+  "roles": [
+    "1st Approver",
+    "2nd Approver",
+    "Recruiter"
+  ],
+  "steps": [
+    {
+      "id": "ORC_040.01",
+      "sequence": 1,
+      "role": "1st Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Login as 1st Approver and click on the bell icon to view the approval notification",
+      "test_data": "<blank>",
+      "expected_result": "Login as 1st Approver and click on the bell icon to view the approval notification",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 11,
+        "cell_refs": {
+          "step_id": "A11",
+          "process_step": "B11",
+          "role": "C11",
+          "description": "D11",
+          "test_data": "E11",
+          "expected_result": "F11",
+          "observed_result": "G11",
+          "status": "H11",
+          "sr_number": "I11",
+          "notes": "J11"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.02",
+      "sequence": 2,
+      "role": "1st Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Click on Offer approval notification",
+      "test_data": "<blank>",
+      "expected_result": "Click on Offer approval notification",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 12,
+        "cell_refs": {
+          "step_id": "A12",
+          "process_step": "B12",
+          "role": "C12",
+          "description": "D12",
+          "test_data": "E12",
+          "expected_result": "F12",
+          "observed_result": "G12",
+          "status": "H12",
+          "sr_number": "I12",
+          "notes": "J12"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.03",
+      "sequence": 3,
+      "role": "1st Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Click on Approve button",
+      "test_data": "<blank>",
+      "expected_result": "Click on Approve button",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 13,
+        "cell_refs": {
+          "step_id": "A13",
+          "process_step": "B13",
+          "role": "C13",
+          "description": "D13",
+          "test_data": "E13",
+          "expected_result": "F13",
+          "observed_result": "G13",
+          "status": "H13",
+          "sr_number": "I13",
+          "notes": "J13"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.04",
+      "sequence": 4,
+      "role": "2nd Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Login as 2nd Approver and click on the bell icon to view the approval notification",
+      "test_data": "<blank>",
+      "expected_result": "Login as 2nd Approver and click on the bell icon to view the approval notification",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 14,
+        "cell_refs": {
+          "step_id": "A14",
+          "process_step": "B14",
+          "role": "C14",
+          "description": "D14",
+          "test_data": "E14",
+          "expected_result": "F14",
+          "observed_result": "G14",
+          "status": "H14",
+          "sr_number": "I14",
+          "notes": "J14"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.05",
+      "sequence": 5,
+      "role": "2nd Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Click on Offer approval notification",
+      "test_data": "<blank>",
+      "expected_result": "Click on Offer approval notification",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 15,
+        "cell_refs": {
+          "step_id": "A15",
+          "process_step": "B15",
+          "role": "C15",
+          "description": "D15",
+          "test_data": "E15",
+          "expected_result": "F15",
+          "observed_result": "G15",
+          "status": "H15",
+          "sr_number": "I15",
+          "notes": "J15"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.06",
+      "sequence": 6,
+      "role": "2nd Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Click on link to view details → Click on Approve button",
+      "test_data": "<blank>",
+      "expected_result": "Click on link to view details → Click on Approve button",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 16,
+        "cell_refs": {
+          "step_id": "A16",
+          "process_step": "B16",
+          "role": "C16",
+          "description": "D16",
+          "test_data": "E16",
+          "expected_result": "F16",
+          "observed_result": "G16",
+          "status": "H16",
+          "sr_number": "I16",
+          "notes": "J16"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.07",
+      "sequence": 7,
+      "role": "2nd Approver",
+      "process_step": "Approve a Job Offer",
+      "raw_text": "Click on Approve button",
+      "test_data": "<blank>",
+      "expected_result": "Click on Approve button",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 17,
+        "cell_refs": {
+          "step_id": "A17",
+          "process_step": "B17",
+          "role": "C17",
+          "description": "D17",
+          "test_data": "E17",
+          "expected_result": "F17",
+          "observed_result": "G17",
+          "status": "H17",
+          "sr_number": "I17",
+          "notes": "J17"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.08",
+      "sequence": 8,
+      "role": "Recruiter",
+      "process_step": "Review Offer Status",
+      "raw_text": "Log in as Recruiter",
+      "test_data": "<blank>",
+      "expected_result": "Log in as Recruiter",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 18,
+        "cell_refs": {
+          "step_id": "A18",
+          "process_step": "B18",
+          "role": "C18",
+          "description": "D18",
+          "test_data": "E18",
+          "expected_result": "F18",
+          "observed_result": "G18",
+          "status": "H18",
+          "sr_number": "I18",
+          "notes": "J18"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.09",
+      "sequence": 9,
+      "role": "Recruiter",
+      "process_step": "Review Offer Status",
+      "raw_text": "Navigate to Hiring under 'My Client Groups'",
+      "test_data": "<blank>",
+      "expected_result": "Navigate to Hiring under 'My Client Groups'",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 19,
+        "cell_refs": {
+          "step_id": "A19",
+          "process_step": "B19",
+          "role": "C19",
+          "description": "D19",
+          "test_data": "E19",
+          "expected_result": "F19",
+          "observed_result": "G19",
+          "status": "H19",
+          "sr_number": "I19",
+          "notes": "J19"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.10",
+      "sequence": 10,
+      "role": "Recruiter",
+      "process_step": "Review Offer Status",
+      "raw_text": "Click on the 'Offers' tile",
+      "test_data": "<blank>",
+      "expected_result": "Click on the 'Offers' tile",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 20,
+        "cell_refs": {
+          "step_id": "A20",
+          "process_step": "B20",
+          "role": "C20",
+          "description": "D20",
+          "test_data": "E20",
+          "expected_result": "F20",
+          "observed_result": "G20",
+          "status": "H20",
+          "sr_number": "I20",
+          "notes": "J20"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    },
+    {
+      "id": "ORC_040.11",
+      "sequence": 11,
+      "role": "Recruiter",
+      "process_step": "Review Offer Status",
+      "raw_text": "Notice the 'Job Offer status' has changed",
+      "test_data": "<blank>",
+      "expected_result": "Notice the 'Job Offer status' has changed",
+      "observed_result": null,
+      "status": "Not Attempted",
+      "sr_number": null,
+      "notes": null,
+      "confidence_tier": "AUTO_RUNNABLE",
+      "confidence_score": 1.0,
+      "parsed_actions": [],
+      "source_ref": {
+        "file_path": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+        "format": "xlsx",
+        "sheet_name": "ORC_040",
+        "row_index": 21,
+        "cell_refs": {
+          "step_id": "A21",
+          "process_step": "B21",
+          "role": "C21",
+          "description": "D21",
+          "test_data": "E21",
+          "expected_result": "F21",
+          "observed_result": "G21",
+          "status": "H21",
+          "sr_number": "I21",
+          "notes": "J21"
+        },
+        "metadata": {
+          "header_row": 10
+        }
+      },
+      "is_compound": false,
+      "sub_steps": []
+    }
+  ],
+  "warnings": [],
+  "source_file": "C:\\Users\\aniru\\Downloads\\TMEIC_ORC_040_Validation_Scripts_Final.xlsx",
+  "sheet_name": "ORC_040",
+  "template_fingerprint": "852ce10f0968ba42"
+}

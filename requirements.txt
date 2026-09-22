@@ -1,0 +1,36 @@
+﻿# ============================================================
+# Oracle Fusion AI Studio — Python Backend Dependencies
+# ============================================================
+
+# Core API
+pydantic>=2.0.0
+fastapi>=0.110.0
+uvicorn>=0.28.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+
+# File Parsing
+openpyxl>=3.1.2
+python-docx>=1.1.0
+pypdf>=4.1.0
+pandas>=2.2.0
+
+# Browser Automation
+playwright>=1.42.0
+
+# AI / Column Matching
+scipy>=1.12.0
+
+# Google Cloud / Vertex AI (Gemini) — replaces OpenAI/Anthropic
+google-cloud-aiplatform>=1.50.0
+google-auth>=2.27.0
+google-auth-httplib2>=0.2.0
+
+# Reporting & Templating
+jinja2>=3.1.3
+rich>=13.7.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pyyaml>=6.0.1

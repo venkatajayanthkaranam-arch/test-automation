@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oracle Cloud Automation — Enterprise AI Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <h1>Oracle Cloud Automation Platform</h1>
+        <p>Format-Agnostic Human-Parity Browser Test Automation Engine</p>
+      </div>
+    </div>
+    <div class="env-badge">
+      Environment: <span class="env-tag">TEST-POD-01 (Safe)</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Upload Card -->
+    <div class="card">
+      <div class="card-title">📁 Upload Manual Test Script</div>
+      <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+        <div style="font-size: 36px; margin-bottom: 8px;">📑</div>
+        <div style="font-weight: 600; font-size: 15px;">Click to select or drag & drop</div>
+        <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">.xlsx, .csv, .docx, .pdf, .md, .txt</div>
+        <input type="file" id="fileInput" style="display:none" onchange="uploadScript(this.files[0])">
+      </div>
+
+      <div style="margin-top: 24px;">
+        <label style="font-size: 13px; color: var(--text-muted); font-weight: 600;">Target Environment URL</label>
+        <input type="text" id="envUrl" value="https://fa-test-saasfaprod1.oraclecloud.com" class="input-field">
+      </div>
+
+      <button class="btn" onclick="executeCurrentScript()">🚀 Run Automated Execution</button>
+      <div id="execStatus" class="status-msg"></div>
+    </div>
+
+    <!-- Script Explorer -->
+    <div class="card">
+      <div class="explorer-header">
+        <div class="card-title" style="margin: 0;">⚡ Extracted Steps & Atomic Sub-Actions</div>
+        <div id="scriptMeta" class="script-meta">No script loaded</div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 120px;">Step ID</th>
+              <th style="width: 140px;">Role</th>
+              <th>Instruction & Atomic Actions</th>
+              <th style="width: 120px;">Status</th>
+            </tr>
+          </thead>
+          <tbody id="stepsTable">
+            <tr>
+              <td colspan="4" class="empty-state">
+                Upload a test script on the left (e.g. <code>TMEIC_ORC_040_Validation_Scripts_Final.xlsx</code>) to inspect parsed steps.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

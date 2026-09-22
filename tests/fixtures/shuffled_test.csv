@@ -1,0 +1,4 @@
+Result Status,Action / Instruction,Step #,Persona / Role,Expected Outcome,Input Parameters
+Not Started,Login as Recruiter and navigate to Job Requisitions,REQ_01.01,Recruiter,Requisitions page is displayed,<blank>
+Not Started,Click on Add Requisition button,REQ_01.02,Recruiter,Create requisition drawer opens,<blank>
+Not Started,Enter requisition title and submit,REQ_01.03,Recruiter,Requisition created confirmation banner,Senior Software Engineer

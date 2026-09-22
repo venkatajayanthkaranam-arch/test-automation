@@ -1,0 +1,25 @@
+﻿# Secrets & credentials
+.env
+config/gcp_service_account.json
+*.json.key
+*.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Reports & uploads (runtime data)
+reports/
+uploads/
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
+
+# Testing
+.pytest_cache/
