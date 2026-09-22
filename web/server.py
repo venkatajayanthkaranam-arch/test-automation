@@ -4,11 +4,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import json
 import shutil
+import asyncio
+import logging
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import uvicorn
 
@@ -16,10 +19,22 @@ from core.parser.universal_parser import UniversalParser
 from core.writeback.excel_writer import ExcelWriteBackEngine
 from core.writeback.html_reporter import HtmlReportEngine
 from core.models.schema import CanonicalScript, StepStatus
+from core.executor.playwright_executor import PlaywrightFusionExecutor
 
 load_dotenv()
 
+logger = logging.getLogger("server")
+logging.basicConfig(level=logging.INFO)
+
 app = FastAPI(title="Oracle Fusion Test Automation Platform", version="1.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
 UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "uploads"))
@@ -29,6 +44,8 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 
 if os.path.exists(os.path.join(FRONTEND_DIST, "assets")):
     app.mount("/assets", StaticFiles(directory=os.path.join(FRONTEND_DIST, "assets")), name="assets")
+
+app.mount("/reports", StaticFiles(directory=REPORTS_DIR), name="reports")
 
 parser = UniversalParser()
 excel_writer = ExcelWriteBackEngine()
@@ -48,6 +65,19 @@ class ExecuteRequest(BaseModel):
     password: Optional[str] = None
     browser: Optional[str] = "chromium"
     headless: Optional[bool] = True
+    multi_role_mode: Optional[bool] = False
+    role_credentials: Optional[Dict[str, Any]] = None
+
+@app.get("/.well-known/appspecific/com.chrome.devtools.json")
+async def chrome_devtools_endpoint():
+    return JSONResponse({})
+
+@app.get("/favicon.svg")
+async def get_favicon():
+    fav = os.path.join(FRONTEND_DIST, "favicon.svg")
+    if os.path.exists(fav):
+        return FileResponse(fav, media_type="image/svg+xml")
+    return HTMLResponse("<svg></svg>", media_type="image/svg+xml")
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
@@ -70,6 +100,14 @@ async def get_config():
         }
     }
 
+@app.get("/api/screenshots")
+async def get_screenshots():
+    sc_dir = os.path.join(REPORTS_DIR, "screenshots")
+    if not os.path.exists(sc_dir):
+        return {"ok": True, "count": 0, "screenshots": []}
+    files = [f for f in os.listdir(sc_dir) if f.endswith(('.png', '.jpg'))]
+    return {"ok": True, "count": len(files), "screenshots": files}
+
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
     global LATEST_BATCH_SCRIPTS, CURRENT_SCRIPTS
@@ -77,78 +115,113 @@ async def upload_file(file: UploadFile = File(...)):
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    scripts = parser.parse(temp_path)
-    if not scripts:
-        raise HTTPException(status_code=400, detail="No test scripts found in file")
+    try:
+        scripts = parser.parse_file(temp_path)
+        LATEST_BATCH_SCRIPTS = scripts
+        for s in scripts:
+            CURRENT_SCRIPTS[s.script_id] = s
 
-    CURRENT_SCRIPTS.clear()
-    for s in scripts:
-        CURRENT_SCRIPTS[s.script_id] = s
-    LATEST_BATCH_SCRIPTS = scripts
-
-    return {"ok": True, "count": len(scripts), "scripts": [s.model_dump() for s in scripts]}
+        total_steps = sum(len(s.steps) for s in scripts)
+        return {
+            "ok": True,
+            "filename": file.filename,
+            "sheets_count": len(scripts),
+            "total_steps": total_steps,
+            "scripts": [s.model_dump() for s in scripts],
+        }
+    except Exception as e:
+        logger.error(f"Parse error on upload: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/paste")
 async def paste_script(req: PasteRequest):
     global LATEST_BATCH_SCRIPTS, CURRENT_SCRIPTS
-    content = req.content.strip()
-    if not content:
-        raise HTTPException(status_code=400, detail="Content cannot be empty")
-
-    temp_file = os.path.join(UPLOAD_DIR, "pasted_script.txt")
-    with open(temp_file, "w", encoding="utf-8") as f:
-        f.write(content)
-
-    scripts = parser.parse(temp_file)
-    if not scripts:
-        raise HTTPException(status_code=400, detail="Could not parse pasted content")
-
-    CURRENT_SCRIPTS.clear()
-    for s in scripts:
-        if req.title:
-            s.title = req.title
-        CURRENT_SCRIPTS[s.script_id] = s
-    LATEST_BATCH_SCRIPTS = scripts
-
-    return {"ok": True, "count": len(scripts), "scripts": [s.model_dump() for s in scripts]}
+    try:
+        script = parser.parse_text(req.content, title=req.title, fmt=req.format)
+        CURRENT_SCRIPTS[script.script_id] = script
+        LATEST_BATCH_SCRIPTS = [script]
+        return {
+            "ok": True,
+            "script": script.model_dump(),
+            "total_steps": len(script.steps),
+        }
+    except Exception as e:
+        logger.error(f"Parse error on paste: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/execute/all")
 async def execute_all_scripts(req: ExecuteRequest = Body(default=ExecuteRequest())):
-    """
-    Ultra-fast batch execution: Marks all steps across all sheets as Pass,
-    generates multi-sheet Excel writeback and executive HTML report under 3 seconds.
-    """
     global LATEST_BATCH_SCRIPTS
     if not LATEST_BATCH_SCRIPTS:
         raise HTTPException(status_code=400, detail="No scripts loaded to execute")
 
-    target_url = req.instance_url or os.getenv("ORACLE_BASE_URL", "https://fa-eubg-test-saasfademo1.ds-fa.oraclepdemos.com")
-    target_user = req.username or os.getenv("ORACLE_USERNAME", "ramya.dm")
+    target_url  = (req.instance_url or os.getenv("ORACLE_BASE_URL", "")).strip()
+    target_user = (req.username     or os.getenv("ORACLE_USERNAME", "")).strip()
+    target_pass = (req.password     or os.getenv("ORACLE_PASSWORD", "")).strip()
+    browser_type = req.browser or "chromium"
+    headless     = req.headless if req.headless is not None else True
 
-    # Fast in-memory state transition across all sheets & steps
+    logger.info(f"[EXECUTE] Starting REAL Playwright execution for {len(LATEST_BATCH_SCRIPTS)} scripts")
+    logger.info(f"[EXECUTE] Target URL : {target_url}")
+    logger.info(f"[EXECUTE] Username   : {target_user}")
+
+    executor = PlaywrightFusionExecutor()
+    env_config = {
+        "base_url": target_url,
+        "username": target_user,
+        "password": target_pass,
+    }
+
+    try:
+        executed_scripts = await executor.execute_batch(
+            LATEST_BATCH_SCRIPTS,
+            env_config=env_config,
+            browser_type=browser_type,
+            headless=headless,
+        )
+        LATEST_BATCH_SCRIPTS = executed_scripts
+    except Exception as e:
+        logger.error(f"[EXECUTE] Playwright batch execution error: {e}")
+        for script in LATEST_BATCH_SCRIPTS:
+            for step in script.steps:
+                if step.status == StepStatus.NOT_ATTEMPTED or step.status == StepStatus.IN_PROGRESS:
+                    step.status = StepStatus.FAIL
+                    step.observed_result = f"Execution error: {e}"
+
+    # Count results
+    total_steps = 0
+    passed = 0
+    failed = 0
     for script in LATEST_BATCH_SCRIPTS:
         for step in script.steps:
-            step.status = StepStatus.PASS
-            step.observed_result = f"Verified in Oracle Cloud at {target_url} (User: {target_user}): {step.raw_text}"
-            step.notes = "Executed & verified"
+            total_steps += 1
+            if step.status == StepStatus.PASS:
+                passed += 1
+            else:
+                failed += 1
 
-    # Multi-sheet Excel writeback
+    logger.info(f"[EXECUTE] Done. Total={total_steps} | Pass={passed} | Fail={failed}")
+
+    # Excel writeback
     out_xlsx = None
     if LATEST_BATCH_SCRIPTS and LATEST_BATCH_SCRIPTS[0].source_file.endswith(('.xlsx', '.xls')):
         try:
-            for s in LATEST_BATCH_SCRIPTS:
-                out_xlsx = excel_writer.write_back(s)
-        except Exception:
-            pass
+            out_xlsx = excel_writer.write_back(LATEST_BATCH_SCRIPTS)
+        except Exception as e:
+            logger.warning(f"[EXECUTE] Excel writeback error (non-fatal): {e}")
 
-    # Executive HTML report
+    # HTML report
     report_file = html_reporter.generate_report(LATEST_BATCH_SCRIPTS)
 
     return {
         "ok": True,
         "count": len(LATEST_BATCH_SCRIPTS),
+        "total_test_cases": len(LATEST_BATCH_SCRIPTS),
+        "total_steps_executed": total_steps,
+        "passed": passed,
+        "failed": failed,
         "scripts": [s.model_dump() for s in LATEST_BATCH_SCRIPTS],
-        "excel_writeback": out_xlsx,
+        "excel_download_url": "/api/download/excel" if out_xlsx else None,
         "report_url": f"/reports/{os.path.basename(report_file)}"
     }
 
@@ -158,13 +231,29 @@ async def execute_single_script(script_id: str, req: ExecuteRequest = Body(defau
         raise HTTPException(status_code=404, detail="Script not found")
 
     script = CURRENT_SCRIPTS[script_id]
-    target_url = req.instance_url or os.getenv("ORACLE_BASE_URL", "https://fa-eubg-test-saasfademo1.ds-fa.oraclepdemos.com")
-    target_user = req.username or os.getenv("ORACLE_USERNAME", "ramya.dm")
+    target_url  = (req.instance_url or os.getenv("ORACLE_BASE_URL", "")).strip()
+    target_user = (req.username     or os.getenv("ORACLE_USERNAME", "")).strip()
+    target_pass = (req.password     or os.getenv("ORACLE_PASSWORD", "")).strip()
 
-    for step in script.steps:
-        step.status = StepStatus.PASS
-        step.observed_result = f"Verified in Oracle Cloud at {target_url} (User: {target_user}): {step.raw_text}"
-        step.notes = "Executed & verified"
+    logger.info(f"[EXECUTE] Single script: {script_id}")
+
+    executor = PlaywrightFusionExecutor()
+    env_config = {
+        "base_url": target_url,
+        "username": target_user,
+        "password": target_pass,
+    }
+
+    try:
+        executed = await executor.execute_batch([script], env_config=env_config)
+        CURRENT_SCRIPTS[script_id] = executed[0]
+        script = executed[0]
+    except Exception as e:
+        logger.error(f"[EXECUTE] Single script error: {e}")
+        for step in script.steps:
+            if step.status in (StepStatus.NOT_ATTEMPTED, StepStatus.IN_PROGRESS):
+                step.status = StepStatus.FAIL
+                step.observed_result = f"Execution error: {e}"
 
     out_xlsx = None
     if script.source_file.endswith(('.xlsx', '.xls')):
@@ -178,7 +267,9 @@ async def execute_single_script(script_id: str, req: ExecuteRequest = Body(defau
     return {
         "ok": True,
         "script": script.model_dump(),
-        "excel_writeback": out_xlsx,
+        "total_test_cases": 1,
+        "total_steps_executed": len(script.steps),
+        "excel_download_url": "/api/download/excel" if out_xlsx else None,
         "report_url": f"/reports/{os.path.basename(report_file)}"
     }
 
@@ -196,13 +287,3 @@ async def download_latest_excel():
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     raise HTTPException(status_code=404, detail="Executed Excel file not found")
-
-@app.get("/reports/{filename}")
-async def get_report(filename: str):
-    path = os.path.join(REPORTS_DIR, filename)
-    if os.path.exists(path):
-        return FileResponse(path)
-    raise HTTPException(status_code=404, detail="Report not found")
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)

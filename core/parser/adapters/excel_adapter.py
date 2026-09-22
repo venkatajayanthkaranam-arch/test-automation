@@ -1,4 +1,4 @@
-import re
+﻿import re
 import os
 from typing import List, Dict, Any, Optional, Tuple
 import openpyxl
@@ -214,13 +214,66 @@ class ExcelAdapter:
         return meta
 
     def _find_table_header(self, rows: List[Any]) -> Tuple[Optional[int], List[str]]:
-        candidate_keywords = ['test step', 'step id', 'description', 'expected result', 'role', 'status', 'action']
-        for idx, row in enumerate(rows[:20]):
+        """
+        Find the real column-header row in Oracle test-script Excel sheets.
+
+        Oracle sheets have 8-10 metadata rows at the top (Test Case ID, Title,
+        Description, System Environment, Tester Name, Test Date, etc.) before
+        the actual table header row:
+          Test Step ID | Fusion Process Step | Role | Test Step Description | ...
+
+        Old code required only >=2 keyword matches, so it mistakenly picked the
+        metadata row "Test Case Description | <long description text>".
+        This caused the column matcher to map 'description' to the wrong column.
+
+        Fix: score all rows up to row 25, require >=3 strong keyword matches,
+        and the row must contain at least one step-id OR description signal column.
+        Pick the highest-scoring row.
+        """
+        strong_keywords = [
+            'test step id', 'step id', 'step no',
+            'test step description', 'step description', 'description',
+            'expected result', 'expected results',
+            'observed result', 'observed results',
+            'status', 'role', 'test data', 'notes'
+        ]
+        step_id_signals = ['test step id', 'step id', 'step no', 'step#', 's.no']
+        desc_signals    = ['test step description', 'step description', 'description', 'action', 'instruction']
+
+        best_idx   = None
+        best_score = 0
+        best_hdrs  = []
+
+        for idx, row in enumerate(rows[:25]):
             row_texts = [str(c.value).strip().lower() for c in row if c.value is not None]
             if not row_texts:
                 continue
-            matches = sum(1 for kw in candidate_keywords if any(kw in txt for txt in row_texts))
+            matches = sum(1 for kw in strong_keywords if any(kw in txt for txt in row_texts))
+            if matches < 3:
+                continue
+            has_step_id = any(sig in txt for sig in step_id_signals for txt in row_texts)
+            has_desc    = any(sig in txt for sig in desc_signals    for txt in row_texts)
+            if not (has_step_id or has_desc):
+                continue
+            # Bonus for having BOTH step_id column AND description column
+            score = matches + (2 if has_step_id and has_desc else 0)
+            if score > best_score:
+                best_score = score
+                best_idx   = idx
+                best_hdrs  = [str(c.value).strip() if c.value is not None else '' for c in row]
+
+        if best_idx is not None:
+            return best_idx, best_hdrs
+
+        # Fallback: original loose logic (last resort)
+        fallback_kws = ['test step', 'step id', 'description', 'expected result', 'role', 'status', 'action']
+        for idx, row in enumerate(rows[:25]):
+            row_texts = [str(c.value).strip().lower() for c in row if c.value is not None]
+            if not row_texts:
+                continue
+            matches = sum(1 for kw in fallback_kws if any(kw in txt for txt in row_texts))
             if matches >= 2:
                 headers = [str(c.value).strip() if c.value is not None else '' for c in row]
                 return idx, headers
         return None, []
+

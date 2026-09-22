@@ -1,6 +1,7 @@
-﻿"""
-Gemini Client — Google Cloud Vertex AI Integration
-Using Vertex AI OpenAPI-compatible endpoint with Service Account credentials.
+"""
+Gemini Client - Google Cloud Vertex AI Integration
+Enriched with Oracle Fusion Cloud Domain Knowledge Base, Demo/Prod Environment Heuristics,
+and Intelligent Self-Healing Locators.
 """
 
 import os
@@ -11,6 +12,11 @@ from typing import Dict, Any, Optional
 import requests
 from google.oauth2 import service_account
 import google.auth.transport.requests
+
+try:
+    from core.ai.oracle_knowledge import OracleKnowledgeBase
+except ImportError:
+    from oracle_knowledge import OracleKnowledgeBase
 
 logger = logging.getLogger("gemini")
 
@@ -55,14 +61,12 @@ class GeminiClient:
                 sa_path,
                 scopes=["https://www.googleapis.com/auth/cloud-platform"]
             )
-            # Test token generation & probe
             token = self._get_token()
             if token:
-                # Probe Vertex AI endpoint
                 test_res = self.generate("Say OK", max_tokens=10)
                 if test_res:
                     self._ready = True
-                    logger.info(f"Gemini ready via Vertex AI — {self._project_id}/{self._location}/{self._model_name}")
+                    logger.info(f"Gemini ready via Vertex AI - {self._project_id}/{self._location}/{self._model_name}")
                 else:
                     logger.warning("Vertex AI probe generated empty response")
         except Exception as e:
@@ -123,55 +127,90 @@ class GeminiClient:
             return ""
         return ""
 
-    def interpret_test_step(self, raw_step: str, context: str = "") -> Dict[str, Any]:
-        """Interpret an Oracle Fusion test step into structured browser actions."""
+    def interpret_test_step(self, raw_step: str, context: str = "", instance_url: str = "") -> Dict[str, Any]:
+        """
+        Interpret an Oracle Fusion test step into structured browser actions with full domain knowledge,
+        demo vs client instance handling, and navigation mapping.
+        """
+        is_demo = OracleKnowledgeBase.is_demo_instance(instance_url)
+        expert_system_prompt = OracleKnowledgeBase.generate_expert_system_prompt()
+        nav_info = OracleKnowledgeBase.resolve_navigation_route(raw_step)
+
         if not self.available:
+            # Domain-rule fallback if Gemini is offline
+            if nav_info:
+                return {
+                    "actions": [
+                        {"type": "navigate", "target": f"{nav_info['tab_name']} -> {nav_info['tile_name']}", "description": f"Navigate to {nav_info['tile_name']} under {nav_info['tab_name']}"}
+                    ],
+                    "confidence": 0.95,
+                    "source": "oracle_knowledge_base"
+                }
             return {"actions": [], "confidence": 0.5, "source": "fallback"}
 
-        prompt = f"""You are an expert Oracle Fusion Cloud test automation engineer.
-Analyze this test step and extract structured Playwright browser actions.
+        prompt = f"""{expert_system_prompt}
 
-TEST STEP: {raw_step}
-{f'CONTEXT: {context}' if context else ''}
+ENVIRONMENT CONTEXT:
+- Target Oracle Instance: {'Demo / Vision Sandbox (Seed data fallback enabled)' if is_demo else 'Enterprise Production / Client Configured'}
+{f'- Pre-mapped Oracle Nav: {json.dumps(nav_info)}' if nav_info else ''}
 
-Return ONLY valid JSON (no markdown):
+TEST STEP TO AUTOMATE:
+{raw_step}
+{f'ADDITIONAL CONTEXT: {context}' if context else ''}
+
+TASK:
+Extract the full executable sequence of browser actions for this step.
+NEVER mark an action as 'custom' or 'manual'. Transform all business intents into real Playwright steps.
+If client-specific data is requested in a Demo instance where that exact name might not exist, specify adaptive selection.
+
+Return ONLY valid JSON (no markdown formatting):
 {{
   "actions": [
-    {{"type": "navigate|click|fill|select|assert|wait", "target": "selector or description", "value": "optional", "description": "human readable"}}
+    {{
+      "type": "login|navigate|click|enter_text|select_option|verify|press_key",
+      "target": "semantic label, button name, tab name, or input field description",
+      "value": "text to enter or option to choose (or fallback option)",
+      "description": "human readable explanation of action"
+    }}
   ],
-  "confidence": 0.0-1.0,
-  "notes": "Oracle Fusion handling notes"
-}}
-
-Oracle Fusion hints:
-- Login: username field #userid, password field #password, Sign In button
-- Navigation: hamburger menu, Navigator, breadcrumbs, role-based tiles
-- Approvals: notification bell icon, approve/reject buttons in workflow
-- ADF/JET: use aria-label, data-automation-id, role attributes for locators"""
+  "confidence": 0.95,
+  "is_demo_adapted": {str(is_demo).lower()},
+  "notes": "Oracle Fusion execution strategy notes"
+}}"""
 
         try:
-            raw = self.generate(prompt, temperature=0.05, max_tokens=800)
+            raw = self.generate(prompt, temperature=0.05, max_tokens=1000)
             if not raw:
                 return {"actions": [], "confidence": 0.3, "source": "gemini_empty"}
             if "```" in raw:
                 raw = raw.split("```")[1].lstrip("json\n").split("```")[0]
             result = json.loads(raw.strip())
-            result["source"] = "gemini"
+            result["source"] = "gemini_oracle_expert"
             return result
         except json.JSONDecodeError:
             return {"actions": [], "confidence": 0.4, "source": "gemini_parse_error"}
         except Exception as e:
             return {"actions": [], "confidence": 0.5, "source": "error", "error": str(e)}
 
-    def heal_selector(self, failed_selector: str, page_snapshot: str) -> str:
+    def heal_selector(self, failed_selector: str, page_snapshot: str, step_context: str = "") -> str:
+        """Self-heal broken selectors using Oracle Fusion element pattern heuristics."""
         if not self.available:
             return ""
-        prompt = f"""Oracle Fusion UI selector failed. Suggest best Playwright alternative.
-FAILED: {failed_selector}
-SNAPSHOT: {page_snapshot[:1500]}
-Return ONLY JSON: {{"selector": "...", "strategy": "role|text|css", "confidence": 0.0-1.0}}"""
+        prompt = f"""Oracle Fusion UI element locator failed during execution.
+Suggest the optimal resilient Playwright locator strategy.
+
+FAILED TARGET: {failed_selector}
+{f'STEP CONTEXT: {step_context}' if step_context else ''}
+PAGE ACCESSIBILITY SNAPSHOT:
+{page_snapshot[:2000]}
+
+HINTS FOR ORACLE FUSION (ADF / JET):
+- Use aria-label, role-based locators (button, link, tab, combobox, textbox), or text substring matching.
+- Avoid dynamic IDs like pt1:_FOr1:...
+
+Return ONLY JSON: {{"selector": "...", "strategy": "role|label|text|css", "confidence": 0.9}}"""
         try:
-            raw = self.generate(prompt, temperature=0.05, max_tokens=200)
+            raw = self.generate(prompt, temperature=0.05, max_tokens=300)
             if "```" in raw:
                 raw = raw.split("```")[1].lstrip("json\n").split("```")[0]
             return json.loads(raw.strip()).get("selector", "")
@@ -186,6 +225,7 @@ Return ONLY JSON: {{"selector": "...", "strategy": "role|text|css", "confidence"
             "project":   self._project_id or "not-configured",
             "location":  self._location,
             "available": str(self.available),
+            "oracle_knowledge_base": "Active (Demo & Client Awareness Enriched)",
             "action_required": self._error_hint if not self.available else "",
         }
 

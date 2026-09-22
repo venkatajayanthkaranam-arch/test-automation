@@ -1,5 +1,4 @@
 """
-Multi-Sheet Executive HTML Report Generator (Clean - No Screenshots)
 """
 
 import os
